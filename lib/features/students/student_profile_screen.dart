@@ -43,21 +43,21 @@ class StudentProfileScreen extends ConsumerWidget {
             children: [
               _InfoSection(student: student),
               const SizedBox(height: 16),
-              _SectionTitle('الملخص المالي'),
+              const _SectionTitle('الملخص المالي'),
               balanceAsync.when(
                 data: (b) => _FinancialCard(balance: b, studentId: studentId),
                 loading: () => const CircularProgressIndicator(),
                 error: (_, __) => const Text('تعذر حساب الرصيد'),
               ),
               const SizedBox(height: 16),
-              _SectionTitle('ملخص الحضور'),
+              const _SectionTitle('ملخص الحضور'),
               attendanceAsync.when(
                 data: (a) => _AttendanceCard(summary: a),
                 loading: () => const CircularProgressIndicator(),
                 error: (_, __) => const Text('تعذر تحميل الحضور'),
               ),
               const SizedBox(height: 16),
-              _SectionTitle('سجل المدفوعات'),
+              const _SectionTitle('سجل المدفوعات'),
               paymentsAsync.when(
                 data: (payments) {
                   if (payments.isEmpty) {
