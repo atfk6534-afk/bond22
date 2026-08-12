@@ -36,7 +36,9 @@ class ReportExportService {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final path = p.join(exportsDir.path, '${fileNameWithoutExtension}_$timestamp.csv');
     // UTF-8 BOM so Excel opens Arabic text correctly instead of mojibake.
-    final bytes = <int>[0xEF, 0xBB, 0xBF, ...csvString.codeUnits];
+    // Body bytes must be real UTF-8 (utf8.encode), NOT String.codeUnits
+    // (which is UTF-16 and would corrupt Arabic characters).
+    final bytes = <int>[0xEF, 0xBB, 0xBF, ...utf8.encode(csvString)];
     await File(path).writeAsBytes(bytes);
     return path;
   }

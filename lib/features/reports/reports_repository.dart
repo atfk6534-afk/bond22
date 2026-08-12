@@ -104,42 +104,65 @@ class ReportsRepository {
   }
 
   /// Attendance + absence report (rule #50 "Attendance Report").
+  ///
+  /// Attendance is tied to the LESSON it belongs to, so it is filtered by
+  /// the lesson's own academic year / group context — never the student's
+  /// CURRENT group/year. This means a student who attended in Group A and
+  /// later moved to Group B will NOT have their Group A attendance counted
+  /// in a Group B report (rule #44: history is immutable, reports must
+  /// reflect the original lesson context).
   Future<List<StudentAttendanceRow>> attendanceReport(ReportFilters f) async {
-    final students = await _filteredActiveStudents(f);
+    final query = db.select(db.attendanceRecords).join([
+      innerJoin(db.lessons, db.lessons.id.equalsExp(db.attendanceRecords.lessonId)),
+    ]);
+    if (f.from != null) query.where(db.lessons.date.isBiggerOrEqualValue(f.from!));
+    if (f.to != null) query.where(db.lessons.date.isSmallerThanValue(f.to!));
+    if (f.academicYearId != null) query.where(db.lessons.academicYearId.equals(f.academicYearId!));
+    if (f.groupId != null) query.where(db.lessons.groupId.equals(f.groupId!));
+
+    final results = await query.get();
+
+    // Group matching attendance records by student.
+    final byStudent = <String, List<TypedResult>>{};
+    for (final r in results) {
+      final studentId = r.readTable(db.attendanceRecords).studentId;
+      byStudent.putIfAbsent(studentId, () => []).add(r);
+    }
+
     final rows = <StudentAttendanceRow>[];
-
-    for (final s in students) {
-      final query = db.select(db.attendanceRecords).join([
-        innerJoin(db.lessons, db.lessons.id.equalsExp(db.attendanceRecords.lessonId)),
-      ])
-        ..where(db.attendanceRecords.studentId.equals(s.id));
-      if (f.from != null) query.where(db.lessons.date.isBiggerOrEqualValue(f.from!));
-      if (f.to != null) query.where(db.lessons.date.isSmallerThanValue(f.to!));
-
-      final results = await query.get();
-      final present = results
+    for (final entry in byStudent.entries) {
+      final student = await studentsRepo.byId(entry.key);
+      if (student == null) continue;
+      final present = entry.value
           .where((r) => r.readTable(db.attendanceRecords).status == AttendanceStatus.present)
           .length;
+      final total = entry.value.length;
       rows.add(StudentAttendanceRow(
-        student: s,
-        total: results.length,
+        student: student,
+        total: total,
         present: present,
-        absent: results.length - present,
+        absent: total - present,
       ));
     }
-    // Students with at least one recorded lesson first, most-absent first.
+    // Most-absent first.
     rows.sort((a, b) => b.absent.compareTo(a.absent));
     return rows;
   }
 
-  /// Payments report — every payment recorded in the date range,
-  /// regardless of student filters (a payments ledger, rule #50).
+  /// Payments report — payments in the date range, filtered by the payment's
+  /// student academic-year / group (rule #50 / current-student context).
   Future<List<Payment>> paymentsReport(ReportFilters f) async {
-    final q = db.select(db.payments);
-    if (f.from != null) q.where((t) => t.date.isBiggerOrEqualValue(f.from!));
-    if (f.to != null) q.where((t) => t.date.isSmallerThanValue(f.to!));
-    q.orderBy([(t) => OrderingTerm.desc(t.date)]);
-    return q.get();
+    final q = db.select(db.payments).join([
+      innerJoin(db.students, db.students.id.equalsExp(db.payments.studentId)),
+    ]);
+    if (f.academicYearId != null) q.where(db.students.academicYearId.equals(f.academicYearId!));
+    if (f.groupId != null) q.where(db.students.groupId.equals(f.groupId!));
+    if (f.from != null) q.where(db.payments.date.isBiggerOrEqualValue(f.from!));
+    if (f.to != null) q.where(db.payments.date.isSmallerThanValue(f.to!));
+    q.orderBy([(t) => OrderingTerm.desc(t.readTable(db.payments).date)]);
+
+    final results = await q.get();
+    return results.map((r) => r.readTable(db.payments)).toList();
   }
 
   /// Outstanding balances report (rule #48/#50), filterable by academic

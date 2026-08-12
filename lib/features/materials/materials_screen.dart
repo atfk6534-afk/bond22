@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 
 import '../../core/database/database.dart' as db;
 import '../../core/utils/money.dart';
+import 'package:open_filex/open_filex.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../settings/settings_repository.dart';
 import '../students/students_repository.dart';
@@ -57,6 +60,12 @@ class MaterialsScreen extends ConsumerWidget {
                         onPressed: () => _showPurchaseSheet(context, ref, m.id, m.name),
                         child: const Text('بيع لطالب'),
                       ),
+                      if (m.filePath != null)
+                        IconButton(
+                          icon: const Icon(Icons.open_in_new_rounded),
+                          tooltip: 'فتح الملف',
+                          onPressed: () => _openMaterialFile(context, m.filePath!),
+                        ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline_rounded),
                         onPressed: () => _confirmDelete(context, ref, m),
@@ -70,6 +79,24 @@ class MaterialsScreen extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  Future<void> _openMaterialFile(BuildContext context, String path) async {
+    final file = File(path);
+    if (!await file.exists()) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('الملف غير موجود — ربما حُذف أو لم يُنسخ بشكل صحيح.'),
+        ));
+      }
+      return;
+    }
+    final result = await OpenFilex.open(path);
+    if (result.type != ResultType.done && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('تعذر فتح الملف: ${result.message ?? ''}'),
+      ));
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref, db.MaterialItem material) async {
@@ -104,6 +131,7 @@ class MaterialsScreen extends ConsumerWidget {
     final nameController = TextEditingController();
     final priceController = TextEditingController();
     final gradeController = TextEditingController();
+    final descriptionController = TextEditingController();
     db.MaterialType type = db.MaterialType.note;
     String? pickedFilePath;
     String? pickedFileName;
@@ -173,6 +201,12 @@ class MaterialsScreen extends ConsumerWidget {
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   ),
                   const SizedBox(height: 12),
+                  TextField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(labelText: 'وصف (اختياري)'),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 12),
                   OutlinedButton.icon(
                     icon: const Icon(Icons.attach_file_rounded),
                     label: Text(pickedFileName == null ? 'إرفاق ملف (اختياري)' : 'تم اختيار: $pickedFileName'),
@@ -208,6 +242,9 @@ class MaterialsScreen extends ConsumerWidget {
                             grade: gradeController.text.trim().isEmpty ? null : gradeController.text.trim(),
                             subjectId: subjectId,
                             pricePiastres: price,
+                            description: descriptionController.text.trim().isEmpty
+                                ? null
+                                : descriptionController.text.trim(),
                             sourceFilePath: pickedFilePath,
                           );
                       if (context.mounted) Navigator.pop(context);

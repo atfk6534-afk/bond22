@@ -37,6 +37,19 @@ class BackupRepository {
   BackupRepository(this.ref);
 
   Future<BackupResult> createBackup() async {
+    final docsDir = await getApplicationDocumentsDirectory();
+    final outPath = p.join(
+      docsDir.path,
+      'bond2_backup_${DateTime.now().millisecondsSinceEpoch}.bond2backup',
+    );
+    return _writeBackup(outPath);
+  }
+
+  /// Builds the `.bond2backup` archive (database + manifest + material
+  /// files) and writes it to [outPath]. Shared by [createBackup] and by
+  /// the automatic pre-restore safety backup so both produce identical,
+  /// complete packages (rule #53-55).
+  Future<BackupResult> _writeBackup(String outPath) async {
     try {
       final docsDir = await getApplicationDocumentsDirectory();
       final dbFile = File(p.join(docsDir.path, 'bond2.sqlite'));
@@ -69,8 +82,6 @@ class BackupRepository {
         }
       }
 
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final outPath = p.join(docsDir.path, 'bond2_backup_$timestamp.bond2backup');
       final zipBytes = ZipEncoder().encode(archive);
       if (zipBytes == null) {
         return const BackupResult(success: false, error: 'تعذر ضغط النسخة الاحتياطية');
@@ -81,6 +92,20 @@ class BackupRepository {
     } catch (e) {
       return BackupResult(success: false, error: 'تعذر إنشاء النسخة الاحتياطية: $e');
     }
+  }
+
+  /// Automatic safety snapshot of the CURRENT data, taken BEFORE a restore
+  /// overwrites it (rule #55). Named `BOND2_before_restore_<ts>.bond2backup`
+  /// so it never collides with the user's own manual backups. If this
+  /// safety backup cannot be made, the restore is aborted rather than
+  /// risking unrecoverable data loss.
+  Future<BackupResult> _createSafetyBackup() async {
+    final docsDir = await getApplicationDocumentsDirectory();
+    final outPath = p.join(
+      docsDir.path,
+      'BOND2_before_restore_${DateTime.now().millisecondsSinceEpoch}.bond2backup',
+    );
+    return _writeBackup(outPath);
   }
 
   /// Validates a backup file without applying it — checked before
@@ -119,6 +144,18 @@ class BackupRepository {
       final manifest = await validateBackup(filePath);
       if (manifest == null) {
         return const BackupResult(success: false, error: 'ملف النسخة الاحتياطية غير صالح أو تالف');
+      }
+
+      // Safety net: snapshot the CURRENT data to a separate file BEFORE
+      // replacing anything. If this safety backup fails for any reason,
+      // abort the whole restore rather than risk overwriting the only
+      // good copy of the user's data (rule #55).
+      final safety = await _createSafetyBackup();
+      if (!safety.success) {
+        return BackupResult(
+          success: false,
+          error: 'تعذر إنشاء نسخة أمان قبل الاستعادة: ${safety.error}',
+        );
       }
 
       final bytes = await File(filePath).readAsBytes();

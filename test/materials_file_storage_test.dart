@@ -118,6 +118,11 @@ void main() {
     });
 
     test('addMaterial saves academic year, grade, and subject (fix #2)', () async {
+      // FK-referenced parent rows must exist before a material can point
+      // at them (database enforces foreign keys).
+      await db.into(db.academicYears).insert(AcademicYearsCompanion.insert(id: 'year-1', name: '2025/2026'));
+      await db.into(db.subjects).insert(SubjectsCompanion.insert(id: 'subject-chem', name: 'كيمياء'));
+
       final materialId = await materialsRepo.addMaterial(
         name: 'كتاب كيمياء',
         type: MaterialType.book,

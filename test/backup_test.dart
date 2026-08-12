@@ -38,7 +38,7 @@ void main() {
     // ref.read(databaseProvider).close() is safe and never touches a
     // real native sqlite file (fix #4 test coverage).
     container = ProviderContainer(
-      overrides: [databaseProvider.overrideWithValue(openTestDatabase())],
+      overrides: [databaseProvider.overrideWith((ref) => openTestDatabase())],
     );
   });
 
