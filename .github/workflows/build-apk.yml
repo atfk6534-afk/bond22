@@ -56,16 +56,6 @@ jobs:
         with:
           gradle-version: '8.7'
 
-      - name: Regenerate Gradle wrapper jar
-        # The wrapper's small bootstrap jar is not committed to the repo
-        # (see android/.gitignore note); regenerate it here using the
-        # Gradle version pinned in gradle-wrapper.properties so the
-        # official ./gradlew script used by `flutter build apk` works.
-        run: |
-          cd android
-          gradle wrapper --gradle-version 8.7
-          chmod +x gradlew
-
       - name: Ensure Android SDK Platform 35 and NDK 26.1.10909125
         run: |
           export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
