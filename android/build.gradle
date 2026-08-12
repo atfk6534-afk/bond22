@@ -13,28 +13,6 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// Force every Android module (including Flutter plugins such as `printing`)
-// to compile against SDK 35 / NDK 26.1.10909125. Without this, plugins keep
-// their own (lower) compileSdkVersion and the resource linker fails with
-// "resource android:attr/lStar not found" because lStar only exists on
-// API >= 31.
-// Uses pluginManager.withPlugin (not afterEvaluate) so it is safe under
-// `gradle wrapper` and the Gradle 8.7 evaluation lifecycle.
-subprojects {
-    pluginManager.withPlugin('com.android.library') {
-        android {
-            compileSdk 35
-            ndkVersion "26.1.10909125"
-        }
-    }
-    pluginManager.withPlugin('com.android.application') {
-        android {
-            compileSdk 35
-            ndkVersion "26.1.10909125"
-        }
-    }
-}
-
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
