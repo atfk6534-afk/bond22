@@ -72,6 +72,13 @@ jobs:
           grep -E "compileSdk|ndkVersion" android/app/build.gradle || true
 
       - name: Build release APK
+        env:
+          # Clear any JVM-arg env vars the runner may inject (e.g. JAVA_OPTS /
+          # GRADLE_OPTS) that can corrupt the Gradle wrapper's `java` launch
+          # and surface as "Could not find or load main class -Xmx64m".
+          JAVA_OPTS: ""
+          GRADLE_OPTS: ""
+          JAVA_TOOL_OPTIONS: ""
         run: flutter build apk --release
 
       - name: Verify APK is valid and universal
