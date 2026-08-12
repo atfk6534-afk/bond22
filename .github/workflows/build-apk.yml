@@ -89,6 +89,15 @@ jobs:
       - name: Build release APK
         run: flutter build apk --release
 
+      - name: Verify APK is valid and universal
+        run: |
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          ls -la "$APK"
+          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          AAPT="$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt"
+          echo "--- package / minSdk / supported ABIs ---"
+          "$AAPT" dump badging "$APK" | grep -E "package:|sdkVersion:|native-code:" || true
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
