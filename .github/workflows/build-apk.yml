@@ -66,6 +66,26 @@ jobs:
           gradle wrapper --gradle-version 8.7
           chmod +x gradlew
 
+      - name: Ensure Android SDK Platform 35 and NDK 26.1.10909125
+        run: |
+          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDKMANAGER" ]; then SDKMANAGER="sdkmanager"; fi
+          yes | "$SDKMANAGER" --licenses || true
+          "$SDKMANAGER" \
+            "platforms;android-35" "build-tools;35.0.0" "ndk;26.1.10909125"
+
+      - name: Diagnostic — Android SDK / NDK state
+        run: |
+          export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo "--- installed platforms ---"
+          ls "$ANDROID_SDK_ROOT/platforms" || true
+          echo "--- installed ndk ---"
+          ls "$ANDROID_SDK_ROOT/ndk" || true
+          echo "--- app compileSdk/ndkVersion ---"
+          grep -E "compileSdk|ndkVersion" android/app/build.gradle || true
+
       - name: Build release APK
         run: flutter build apk --release
 
