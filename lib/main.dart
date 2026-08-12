@@ -64,8 +64,8 @@ class _StartupGate extends ConsumerWidget {
 
     return profileAsync.when(
       loading: () => const _SplashScreen(),
-      error: (e, st) => Scaffold(
-        body: const Center(child: Text('حدث خطأ غير متوقع أثناء بدء التطبيق')),
+      error: (e, st) => const Scaffold(
+        body: Center(child: Text('حدث خطأ غير متوقع أثناء بدء التطبيق')),
       ),
       data: (profile) {
         if (profile == null) return const WelcomeScreen();
