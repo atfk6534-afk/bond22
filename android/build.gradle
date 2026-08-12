@@ -13,6 +13,27 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// Force Flutter plugin modules (e.g. `printing`) to compile against SDK 35 /
+// NDK 26.1.10909125. The app module is configured directly in
+// android/app/build.gradle, so it is skipped here; otherwise re-configuring
+// the already-evaluated `:app` project would throw "already evaluated" under
+// `gradle wrapper`. Configuring plugins via afterEvaluate is the correct
+// timing (the Android plugin has applied but not yet locked compileSdk),
+// which fixes the `android:attr/lStar not found` resource-link error
+// (lStar only exists on API >= 31).
+subprojects { project ->
+    if (project.name == 'app') return
+    if (project.state.executed) return
+    project.afterEvaluate {
+        if (project.hasProperty('android')) {
+            project.android {
+                compileSdk 35
+                ndkVersion "26.1.10909125"
+            }
+        }
+    }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
