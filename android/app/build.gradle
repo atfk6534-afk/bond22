@@ -1,0 +1,76 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty("flutter.versionCode") ?: "1"
+def flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "1.0.0"
+
+android {
+    namespace "com.bond2.tutor"
+    compileSdk 34
+    ndkVersion flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+    }
+
+    defaultConfig {
+        // Package ID as specified in the BOND2 spec (rule #84).
+        applicationId "com.bond2.tutor"
+        minSdk 23
+        targetSdk 34
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+    }
+
+    signingConfigs {
+        release {
+            // CI builds an unsigned/debug-signed release APK by default.
+            // Replace with a real keystore (android/key.properties, never
+            // committed - see .gitignore) for a Play Store-ready build.
+            if (System.getenv("BOND2_KEYSTORE_PATH") != null) {
+                storeFile file(System.getenv("BOND2_KEYSTORE_PATH"))
+                storePassword System.getenv("BOND2_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("BOND2_KEY_ALIAS")
+                keyPassword System.getenv("BOND2_KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            if (System.getenv("BOND2_KEYSTORE_PATH") != null) {
+                signingConfig signingConfigs.release
+            } else {
+                // Falls back to the debug key so `flutter build apk --release`
+                // still produces an installable APK in CI without secrets.
+                signingConfig signingConfigs.debug
+            }
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+}
+
+flutter {
+    source "../.."
+}

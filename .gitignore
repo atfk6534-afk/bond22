@@ -1,0 +1,42 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+pubspec.lock
+
+# Generated code (rebuilt by build_runner / CI)
+**/*.g.dart
+**/*.freezed.dart
+
+# Android
+android/.gradle/
+android/local.properties
+# gradle-wrapper.jar is intentionally NOT committed (binary jar not
+# reproducible in this environment). GitHub Actions regenerates it
+# automatically via `gradle wrapper` before building - see
+# .github/workflows/build-apk.yml. For local builds, run once:
+#   cd android && gradle wrapper --gradle-version 8.7
+android/**/gradle-wrapper.jar
+android/key.properties
+*.jks
+*.keystore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# App data / personal backups (never commit real student data)
+*.bond2backup
+*.db
+
+# Coverage
+coverage/

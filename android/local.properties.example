@@ -1,0 +1,8 @@
+# Copy this file to `local.properties` (which is gitignored) and set the
+# correct paths for your machine. GitHub Actions generates this file
+# automatically in the CI workflow - you only need this for local builds.
+#
+# sdk.dir=/path/to/Android/sdk
+# flutter.sdk=/path/to/flutter
+# flutter.versionName=1.0.0
+# flutter.versionCode=1
