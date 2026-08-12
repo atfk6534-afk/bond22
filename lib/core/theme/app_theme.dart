@@ -25,7 +25,7 @@ class AppTheme {
       colorScheme: colorScheme,
       fontFamily: 'Cairo', // Arabic-friendly; falls back to system if absent
       visualDensity: VisualDensity.comfortable,
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         elevation: 0,
         color: colorScheme.surfaceContainerHigh,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),

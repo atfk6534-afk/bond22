@@ -80,6 +80,7 @@ class _StudentQrScreenState extends ConsumerState<StudentQrScreen> {
                       : () async {
                           setState(() => _busy = true);
                           final file = await _renderQrToFile(student.name);
+                          if (!context.mounted) return;
                           setState(() => _busy = false);
                           if (file != null) {
                             await Share.shareXFiles(
@@ -106,10 +107,10 @@ class _StudentQrScreenState extends ConsumerState<StudentQrScreen> {
                       : () async {
                           setState(() => _busy = true);
                           final file = await _renderQrToFile(student.name);
+                          if (!context.mounted) return;
                           setState(() => _busy = false);
                           final message =
                               'مرحبًا، هذا كود حضور BOND2 الخاص بالطالب ${student.name}. برجاء الاحتفاظ به لاستخدامه في الحضور.';
-                          if (!mounted) return;
                           if (file != null) {
                             // Opens the OS share sheet with the QR image
                             // attached; the teacher chooses WhatsApp (or

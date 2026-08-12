@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 
-import '../../core/database/database.dart';
+import '../../core/database/database.dart' as db;
 import '../../core/utils/money.dart';
 import '../../shared/widgets/empty_state.dart';
 import '../settings/settings_repository.dart';
@@ -42,7 +42,7 @@ class MaterialsScreen extends ConsumerWidget {
               final m = list[i];
               return Card(
                 child: ListTile(
-                  leading: Icon(m.type == MaterialType.book ? Icons.menu_book_rounded : Icons.description_rounded),
+                  leading: Icon(m.type == db.MaterialType.book ? Icons.menu_book_rounded : Icons.description_rounded),
                   title: Text(m.name, style: const TextStyle(fontWeight: FontWeight.w800)),
                   subtitle: Text(
                     [
@@ -72,7 +72,7 @@ class MaterialsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref, MaterialItem material) async {
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref, db.MaterialItem material) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -104,7 +104,7 @@ class MaterialsScreen extends ConsumerWidget {
     final nameController = TextEditingController();
     final priceController = TextEditingController();
     final gradeController = TextEditingController();
-    MaterialType type = MaterialType.note;
+    db.MaterialType type = db.MaterialType.note;
     String? pickedFilePath;
     String? pickedFileName;
     String? academicYearId;
@@ -129,15 +129,15 @@ class MaterialsScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   TextField(controller: nameController, decoration: const InputDecoration(labelText: 'الاسم')),
                   const SizedBox(height: 12),
-                  DropdownButtonFormField<MaterialType>(
+                  DropdownButtonFormField<db.MaterialType>(
                     value: type,
                     decoration: const InputDecoration(labelText: 'النوع'),
                     items: const [
-                      DropdownMenuItem(value: MaterialType.note, child: Text('مذكرة')),
-                      DropdownMenuItem(value: MaterialType.book, child: Text('كتاب')),
-                      DropdownMenuItem(value: MaterialType.other, child: Text('أخرى')),
+                      DropdownMenuItem(value: db.MaterialType.note, child: Text('مذكرة')),
+                      DropdownMenuItem(value: db.MaterialType.book, child: Text('كتاب')),
+                      DropdownMenuItem(value: db.MaterialType.other, child: Text('أخرى')),
                     ],
-                    onChanged: (v) => setState(() => type = v ?? MaterialType.note),
+                    onChanged: (v) => setState(() => type = v ?? db.MaterialType.note),
                   ),
                   const SizedBox(height: 12),
                   years.when(

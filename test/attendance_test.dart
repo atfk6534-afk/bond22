@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:drift/drift.dart';
 import 'package:bond2/core/database/database.dart';
 import 'package:bond2/core/services/qr_service.dart';
 import 'package:bond2/features/attendance/attendance_repository.dart';
@@ -58,7 +59,7 @@ void main() {
       expect(second.outcome, ScanOutcome.alreadyRecorded);
 
       final records = await (db.select(db.attendanceRecords)
-            ..where((t) => t.lessonId.equals(lessonId) & t.studentId.equals(studentId)))
+            ..where((t) => Expression.and([t.lessonId.equals(lessonId), t.studentId.equals(studentId)])))
           .get();
       expect(records.length, 1); // never duplicated
     });
@@ -106,7 +107,7 @@ void main() {
           lessonId: lessonId, studentId: studentId, status: AttendanceStatus.absent, method: AttendanceMethod.manual);
 
       final records = await (db.select(db.attendanceRecords)
-            ..where((t) => t.lessonId.equals(lessonId) & t.studentId.equals(studentId)))
+            ..where((t) => Expression.and([t.lessonId.equals(lessonId), t.studentId.equals(studentId)])))
           .get();
       expect(records.length, 1);
       expect(records.first.status, AttendanceStatus.absent); // latest status wins

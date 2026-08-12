@@ -72,6 +72,9 @@ class BackupRepository {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final outPath = p.join(docsDir.path, 'bond2_backup_$timestamp.bond2backup');
       final zipBytes = ZipEncoder().encode(archive);
+      if (zipBytes == null) {
+        return const BackupResult(success: false, error: 'تعذر ضغط النسخة الاحتياطية');
+      }
       await File(outPath).writeAsBytes(zipBytes);
 
       return BackupResult(success: true, filePath: outPath);

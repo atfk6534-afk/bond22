@@ -94,7 +94,7 @@ class ReportExportService {
               padding: const pw.EdgeInsets.only(bottom: 12),
               child: pw.Text(subtitle, style: const pw.TextStyle(fontSize: 11, color: PdfColors.grey700)),
             ),
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             headers: headers,
             data: rows,
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
