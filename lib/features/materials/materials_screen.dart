@@ -94,7 +94,9 @@ class MaterialsScreen extends ConsumerWidget {
     final result = await OpenFilex.open(path);
     if (result.type != ResultType.done && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('تعذر فتح الملف: ${result.message}'),
+        content: Text(
+          'تعذر فتح الملف: ${result.message}',
+        ),
       ));
     }
   }

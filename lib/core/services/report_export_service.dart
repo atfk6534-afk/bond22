@@ -39,7 +39,12 @@ class ReportExportService {
     // UTF-8 BOM so Excel opens Arabic text correctly instead of mojibake.
     // Body bytes must be real UTF-8 (utf8.encode), NOT String.codeUnits
     // (which is UTF-16 and would corrupt Arabic characters).
-    final bytes = <int>[0xEF, 0xBB, 0xBF, ...utf8.encode(csvString)];
+    final bytes = <int>[
+      0xEF,
+      0xBB,
+      0xBF,
+      ...utf8.encode(csvString),
+    ];
     await File(path).writeAsBytes(bytes);
     return path;
   }

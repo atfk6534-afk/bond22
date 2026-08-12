@@ -159,7 +159,9 @@ class ReportsRepository {
     if (f.groupId != null) q.where(db.students.groupId.equals(f.groupId!));
     if (f.from != null) q.where(db.payments.date.isBiggerOrEqualValue(f.from!));
     if (f.to != null) q.where(db.payments.date.isSmallerThanValue(f.to!));
-    q.orderBy([OrderingTerm.desc(db.payments.date)]);
+    q.orderBy([
+      OrderingTerm.desc(db.payments.date),
+    ]);
 
     final results = await q.get();
     return results.map((r) => r.readTable(db.payments)).toList();
